@@ -1,14 +1,22 @@
 import mongoose from 'mongoose';
 
-// TODO: define the Evaluation schema per README.md section 1.
-
 const evaluationSchema = new mongoose.Schema(
   {
-    // TODO
+    seminarCode: { type: String, required: true },
+    score: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String },
+    evaluatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
   { timestamps: true }
 );
 
-// TODO: add the compound uniqueness constraint described in README.md section 1.
+// One evaluation per user per seminar.
+// The partial filter applies the rule only when evaluatedBy is set, so that
+// anonymous evaluations (no evaluatedBy) for the same seminar don't collide
+// with each other on a null key.
+evaluationSchema.index(
+  { seminarCode: 1, evaluatedBy: 1 },
+  { unique: true, partialFilterExpression: { evaluatedBy: { $type: 'objectId' } } }
+);
 
 export const Evaluation = mongoose.model('Evaluation', evaluationSchema);
